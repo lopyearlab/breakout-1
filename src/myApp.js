@@ -36,12 +36,16 @@ var Ball = (function (_super) {
         p.x += this._vx;
         p.y += this._vy;
 
+        this._isHitWall = false;
+
         var right = this._areaSize.width - this._radius;
         var left = this._radius;
         if (right < p.x) {
+            this._isHitWall = true;
             this._vx *= -1;
             p.x = right;
         } else if (p.x < left) {
+            this._isHitWall = true;
             this._vx *= -1;
             p.x = left;
         }
@@ -49,14 +53,20 @@ var Ball = (function (_super) {
         var top = this._areaSize.height - this._radius;
         var bottom = this._radius;
         if (top < p.y) {
+            this._isHitWall = true;
             this._vy *= -1;
             p.y = top;
         } else if (p.y < bottom) {
+            this._isHitWall = true;
             this._vy *= -1;
             p.y = bottom;
         }
 
         this.setPosition(p);
+    };
+
+    Ball.prototype.isHitWall = function () {
+        return this._isHitWall;
     };
 
     Ball.prototype.setVelocity = function (angle, speed) {
@@ -89,8 +99,19 @@ var Block = (function (_super) {
     Block.prototype.init = function () {
         var sprite = cc.Sprite.create("res/block.png");
         this.addChild(sprite);
-
         this.setContentSize(sprite.getContentSize());
+
+        this._health = Math.floor(Math.random() * 3) + 1;
+
+        var healthLabel = cc.LabelTTF.create("" + this._health);
+        this.addChild(this._healthLabel = healthLabel);
+    };
+
+    Block.prototype.hit = function () {
+        if (--this._health <= 0)
+            this.setVisible(false);
+        else
+            this._healthLabel.setString("" + this._health);
     };
     return Block;
 })(cc.Node);
@@ -121,15 +142,14 @@ var HelloWorld = (function (_super) {
     __extends(HelloWorld, _super);
     function HelloWorld() {
         _super.apply(this, arguments);
+        this.BASE_SCORE = 100;
+        this._numBrokens = 0;
     }
     HelloWorld.prototype.init = function () {
         _super.prototype.init.call(this);
 
         var size = cc.Director.getInstance().getWinSize();
 
-        //		var sprite = cc.Sprite.create( "res/HelloWorld.png" );
-        //		sprite.setPosition( cc.p(size.width*0.5, size.height*0.5) );
-        //		this.addChild( sprite );
         this._blocks = [];
         for (var i = 0, len = 72; i < len; i++) {
             var ix = i % 8 + 0.5;
@@ -172,6 +192,9 @@ var HelloWorld = (function (_super) {
             var o = objects[i];
             o.update(dt);
 
+            if (o.isHitWall())
+                this._numBrokens = 0;
+
             for (var k = targets.length - 1; k >= 0; k--) {
                 var target = targets[k];
                 if (!target.isVisible())
@@ -180,11 +203,15 @@ var HelloWorld = (function (_super) {
                 gameClear = false;
 
                 if (Util.hitTestPoint(o, target.getPosition())) {
-                    target.setVisible(false);
+                    target.hit();
                     o.bounce(target.getPosition());
 
-                    this._score += 100;
-                    this._scoreLabel.setString("" + this._score);
+                    if (!target.isVisible()) {
+                        this._numBrokens++;
+                        this._score += this.BASE_SCORE * this._numBrokens;
+                        this._scoreLabel.setString("" + this._score);
+                    }
+
                     break LOOP;
                 }
             }
