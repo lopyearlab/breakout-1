@@ -7,7 +7,7 @@
 module Breakout{
 
 class HelloWorld extends cc.Layer{
-	FPS = 30;
+	FPS = 60;
 	BASE_SCORE = 100;
 
 	_blocks :Array<Block>;

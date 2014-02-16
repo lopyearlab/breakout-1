@@ -14,7 +14,7 @@ var Breakout;
         __extends(HelloWorld, _super);
         function HelloWorld() {
             _super.apply(this, arguments);
-            this.FPS = 30;
+            this.FPS = 60;
             this.BASE_SCORE = 100;
             this._numBrokens = 0;
         }
