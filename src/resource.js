@@ -8,7 +8,8 @@ var g_resources = [
     {src:s_CloseNormal},
     {src:s_CloseSelected},
 	{src:"res/ball.png"},
-	{src:"res/block.png"}
+	{src:"res/block.png"},
+	{src:"res/block_damaged.png"}
 
     //plist
 

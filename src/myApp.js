@@ -24,14 +24,14 @@ var Ball = (function (_super) {
         this._radius = sprite.getContentSize().width * 0.5;
 
         var angle = Math.floor(Math.random() * 360);
-        var speed = 5;
+        var speed = 8;
         this.setVelocity(angle, speed);
 
         this._speed = speed;
         this._areaSize = cc.Director.getInstance().getWinSize();
     };
 
-    Ball.prototype.update = function (dt) {
+    Ball.prototype.onUpdate = function () {
         var p = this.getPosition();
         p.x += this._vx;
         p.y += this._vy;
@@ -90,6 +90,7 @@ var Block = (function (_super) {
     function Block() {
         _super.apply(this, arguments);
     }
+    //_healthLabel :cc.LabelTTF;
     Block.create = function () {
         var self = new Block();
         self.init();
@@ -102,16 +103,22 @@ var Block = (function (_super) {
         this.setContentSize(sprite.getContentSize());
 
         this._health = Math.floor(Math.random() * 3) + 1;
-
-        var healthLabel = cc.LabelTTF.create("" + this._health);
-        this.addChild(this._healthLabel = healthLabel);
+        //var healthLabel = cc.LabelTTF.create( "" + this._health );
+        //this.addChild( this._healthLabel = healthLabel );
     };
 
     Block.prototype.hit = function () {
         if (--this._health <= 0)
             this.setVisible(false);
-        else
-            this._healthLabel.setString("" + this._health);
+        else {
+            if (1 == this._health) {
+                this.removeAllChildren(true);
+                var sprite = cc.Sprite.create("res/block_damaged.png");
+                this.addChild(sprite);
+            }
+
+            this.runAction(cc.Sequence.create(cc.ScaleTo.create(0.03, 0.5), cc.ScaleTo.create(0.03, 1)));
+        }
     };
     return Block;
 })(cc.Node);
@@ -142,6 +149,7 @@ var HelloWorld = (function (_super) {
     __extends(HelloWorld, _super);
     function HelloWorld() {
         _super.apply(this, arguments);
+        this.FPS = 30;
         this.BASE_SCORE = 100;
         this._numBrokens = 0;
     }
@@ -149,13 +157,17 @@ var HelloWorld = (function (_super) {
         _super.prototype.init.call(this);
 
         var size = cc.Director.getInstance().getWinSize();
+        var blockSize = cc.size(38, 40);
+        var headerSize = cc.size(size.width, 20);
+        var paddingLeft = 8;
+        var numBlocksPerLine = 8;
 
         this._blocks = [];
-        for (var i = 0, len = 72; i < len; i++) {
-            var ix = i % 8 + 0.5;
-            var iy = Math.floor(i / 8) + 0.5;
+        for (var i = 0, len = numBlocksPerLine * 9; i < len; i++) {
+            var ix = i % numBlocksPerLine + 0.5;
+            var iy = Math.floor(i / numBlocksPerLine) + 0.5;
             var block = Block.create();
-            block.setPosition(cc.p(ix * 40, size.height - 20 - iy * 40));
+            block.setPosition(cc.p(ix * blockSize.width + paddingLeft, size.height - headerSize.height - iy * blockSize.height));
             this.addChild(block);
 
             this._blocks.push(block);
@@ -164,7 +176,7 @@ var HelloWorld = (function (_super) {
         this._balls = [];
         for (var i = 0, len = 5; i < len; i++) {
             var ball = Ball.create();
-            ball.setPosition(cc.p(160, 50));
+            ball.setPosition(cc.p(size.width * 0.5, 50));
             this.addChild(ball);
 
             this._balls.push(ball);
@@ -172,16 +184,16 @@ var HelloWorld = (function (_super) {
 
         this._score = 0;
         var scoreLabel = cc.LabelTTF.create("");
-        scoreLabel.setPosition(cc.p(size.width * 0.5, size.height - 20));
+        scoreLabel.setPosition(cc.p(size.width * 0.5, size.height - headerSize.height));
         this.addChild(this._scoreLabel = scoreLabel);
 
         this.setTouchEnabled(true);
-        this.scheduleUpdate();
+        this.schedule(this.onUpdate, 1.0 / this.FPS);
 
         return true;
     };
 
-    HelloWorld.prototype.update = function (dt) {
+    HelloWorld.prototype.onUpdate = function () {
         var gameClear = true;
 
         var objects = this._balls;
@@ -190,8 +202,10 @@ var HelloWorld = (function (_super) {
         LOOP:
         for (var i = 0, len = objects.length; i < len; i++) {
             var o = objects[i];
-            o.update(dt);
+            if (!o)
+                continue;
 
+            o.onUpdate();
             if (o.isHitWall())
                 this._numBrokens = 0;
 
@@ -226,7 +240,7 @@ var HelloWorld = (function (_super) {
         }
 
         if (gameClear) {
-            this.unscheduleUpdate();
+            this.unscheduleAllCallbacks();
             this.removeAllChildren(true);
 
             alert("GAME CLEAR!!");
