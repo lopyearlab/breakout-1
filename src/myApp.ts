@@ -7,7 +7,7 @@
 module Breakout{
 
 class HelloWorld extends cc.Layer{
-	FPS = 60;
+	FPS = 60; //※modify ../cocos2d.js
 	BASE_SCORE = 100;
 
 	_blocks :Array<Block>;
