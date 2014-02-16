@@ -39,6 +39,9 @@
         //SingleEngineFile:'',
         appFiles:[
             'src/resource.js',
+			'src/Ball.js',
+			'src/Block.js',
+			'src/Util.js',
             'src/myApp.js'//add your own files in order here
         ]
     };

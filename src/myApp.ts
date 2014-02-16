@@ -1,151 +1,10 @@
 
 /// <reference path="cocos2d.d.ts" />
+/// <reference path="Ball.ts" />
+/// <reference path="Block.ts" />
+/// <reference path="Util.ts" />
 
-class Ball extends cc.Node{
-	_areaSize :cc.Size;
-
-	_radius :number;
-
-	_vx :number;
-	_vy :number;
-	_speed :number;
-
-	_isHitWall :Boolean;
-
-	static create(){
-		var self = new Ball();
-		self.init();
-		return self;
-	}
-
-	init(){
-		var sprite = cc.Sprite.create( "res/ball.png" );
-		this.addChild( sprite );
-		this.setContentSize( sprite.getContentSize() );
-
-		this._radius = sprite.getContentSize().width * 0.5;
-
-		var angle = Math.floor(Math.random()*360);
-		var speed = 8;
-		this.setVelocity( angle, speed );
-
-		this._speed = speed;
-		this._areaSize = cc.Director.getInstance().getWinSize();
-	}
-
-	onUpdate(){
-		var p = this.getPosition();
-		p.x += this._vx;
-		p.y += this._vy;
-
-		this._isHitWall = false;
-
-		var right = this._areaSize.width - this._radius;
-		var left = this._radius;
-		if( right < p.x ){
-			this._isHitWall = true;
-			this._vx *= -1;
-			p.x = right;
-		}
-		else if( p.x < left){
-			this._isHitWall = true;
-			this._vx *= -1;
-			p.x = left;
-		}
-
-		var top = this._areaSize.height - this._radius;
-		var bottom = this._radius;
-		if( top < p.y ){
-			this._isHitWall = true;
-			this._vy *= -1;
-			p.y = top;
-		}
-		else if( p.y < bottom ){
-			this._isHitWall = true;
-			this._vy *= -1;
-			p.y = bottom;
-		}
-
-		this.setPosition( p );
-	}
-
-	isHitWall(){
-		return this._isHitWall;
-	}
-
-	setVelocity( angle :number, speed :number ){
-		this._vx = speed * Math.cos(angle);
-		this._vy = speed * Math.sin(angle);
-	}
-
-	bounce( targetPoint :cc.Point ){
-		var p = this.getPosition();
-		var dx = p.x - targetPoint.x;
-		var dy = p.y - targetPoint.y;
-
-		var angle = Math.atan2( dy, dx );
-		this.setVelocity( angle, this._speed );
-	}
-}
-
-class Block extends cc.Node{
-	_health :number;
-
-	//_healthLabel :cc.LabelTTF;
-
-	static create(){
-		var self = new Block();
-		self.init();
-		return self;
-	}
-
-	init(){
-		var sprite = cc.Sprite.create( "res/block.png" );
-		this.addChild( sprite );
-		this.setContentSize( sprite.getContentSize() );
-
-		this._health = Math.floor(Math.random()*3) + 1;
-
-		//var healthLabel = cc.LabelTTF.create( "" + this._health );
-		//this.addChild( this._healthLabel = healthLabel );
-	}
-
-	hit(){
-		if( --this._health <= 0 )
-			this.setVisible(false);
-		else{
-			if( 1 == this._health ){
-				this.removeAllChildren(true);
-				var sprite = cc.Sprite.create( "res/block_damaged.png" );
-				this.addChild( sprite );
-			}
-
-			this.runAction( cc.Sequence.create(
-				cc.ScaleTo.create( 0.03, 0.5 )
-				, cc.ScaleTo.create( 0.03, 1 )
-			));
-		}
-	}
-}
-
-class Util {
-	static hitTestPoint( node :cc.Node, targetPoint :cc.Point ){
-		var p = node.getPosition();
-		var size = node.getContentSize();
-
-		var left = p.x - size.width * 0.5;
-		var right = p.x + size.width * 0.5;
-		var top = p.y + size.height * 0.5;
-		var bottom = p.y - size.height * 0.5;
-
-		if( left < targetPoint.x && targetPoint.x < right ){
-			if( bottom < targetPoint.y && targetPoint.y < top )
-				return true;
-		}
-
-		return false;
-	}
-}
+module Breakout{
 
 class HelloWorld extends cc.Layer{
 	FPS = 30;
@@ -271,7 +130,7 @@ class HelloWorld extends cc.Layer{
 	}
 }
 
-class HelloWorldScene extends cc.Scene {
+export class HelloWorldScene extends cc.Scene {
 	onEnter(){
 		super.onEnter();
 
@@ -279,4 +138,6 @@ class HelloWorldScene extends cc.Scene {
 		layer.init();
 		this.addChild( layer );
 	}
+}
+
 }
